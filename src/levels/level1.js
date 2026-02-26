@@ -34,8 +34,8 @@ export default {
   entities: {
     enemies: [],
     collectibles: [
-      // Easy dango - jump from ground to grab (y=288, player peak reaches ~240)
-      { type: 'dango', x: 8 * 32 + 6, y: 9 * 32, id: 'd1' },
+      // Easy dango - at ground level for walk-through collection
+      { type: 'dango', x: 8 * 32 + 6, y: 11 * 32 - 20, id: 'd1' },
       // Medium dango - above row 9 platform at cols 37-39, jump from platform
       { type: 'dango', x: 38 * 32 + 6, y: 8 * 32, id: 'd2' },
       // Hard dango - above row 7 platform, requires stepping from row 9
