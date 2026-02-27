@@ -51,7 +51,7 @@ export function resolveCollisionY(entity, level, crumbleMap) {
     const row = Math.floor((entity.y + entity.h) / TILE_SIZE);
     for (let col = left; col <= right; col++) {
       const tile = getTile(level, col, row);
-      if (isSolid(tile) || (isPlatform(tile) && entity.y + entity.h - entity.vy <= row * TILE_SIZE + 1)) {
+      if (isSolid(tile) || isBounce(tile) || (isPlatform(tile) && entity.y + entity.h - entity.vy <= row * TILE_SIZE + 1)) {
         if (isCrumble(tile)) {
           const key = `${col},${row}`;
           if (crumbleMap && crumbleMap[key] && crumbleMap[key].broken) continue;
