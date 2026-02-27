@@ -21,6 +21,7 @@ export function createEnemy(type, x, y, config = {}) {
     active: true,
     // Onigiri
     patrolDir: 1,
+    reverseCooldown: 0,
     // Shrimp
     hopTimer: config.hopDelay || 2,
     hopInterval: config.hopDelay || 2,
@@ -54,27 +55,36 @@ export function updateEnemy(enemy, level, dt) {
 }
 
 function updateOnigiri(enemy, level, dt) {
+  if (enemy.reverseCooldown > 0) enemy.reverseCooldown -= dt;
+
   enemy.x += enemy.vx * enemy.patrolDir;
   enemy.facing = enemy.patrolDir;
 
+  let shouldReverse = false;
+
   // Reverse at range limits
   if (Math.abs(enemy.x - enemy.startX) > enemy.range) {
-    enemy.patrolDir *= -1;
     enemy.x = enemy.startX + enemy.range * enemy.patrolDir;
+    shouldReverse = true;
   }
 
   // Reverse at walls
   const col = Math.floor((enemy.x + (enemy.patrolDir > 0 ? enemy.w : 0)) / TILE_SIZE);
   const row = Math.floor((enemy.y + enemy.h / 2) / TILE_SIZE);
   if (isSolid(getTile(level, col, row))) {
-    enemy.patrolDir *= -1;
+    shouldReverse = true;
   }
 
   // Reverse at edges (don't walk off platforms)
   const edgeCol = Math.floor((enemy.x + (enemy.patrolDir > 0 ? enemy.w : 0)) / TILE_SIZE);
   const belowRow = Math.floor((enemy.y + enemy.h + 2) / TILE_SIZE);
   if (!isSolid(getTile(level, edgeCol, belowRow))) {
+    shouldReverse = true;
+  }
+
+  if (shouldReverse && enemy.reverseCooldown <= 0) {
     enemy.patrolDir *= -1;
+    enemy.reverseCooldown = 0.15;
   }
 
   // Wobble animation
@@ -127,6 +137,11 @@ export function checkPlayerEnemyCollision(player, enemy) {
   if (px < ex + ew && px + pw > ex && py < ey + eh && py + ph > ey) {
     if (enemy.type === ENEMY_TYPE.WASABI) {
       return 'bounce_up';
+    }
+    // Stomp: player is falling and feet are above enemy's midpoint
+    if (player.vy > 0 && py + ph < ey + eh * 0.6) {
+      enemy.active = false;
+      return 'stomp';
     }
     return 'hurt';
   }

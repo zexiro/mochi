@@ -94,13 +94,15 @@
     virtualW = Math.ceil(w / scale);
     virtualH = Math.ceil(h / scale);
 
-    canvas.width = virtualW * dpr;
-    canvas.height = virtualH * dpr;
+    // Render at full screen resolution to avoid pixelation
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
     canvas.style.width = w + 'px';
     canvas.style.height = h + 'px';
 
     if (ctx) {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Scale from virtual game coords to full screen pixels
+      ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
     }
 
     if (camera) {
@@ -162,6 +164,12 @@
       if (hit === 'hurt') {
         playHurt();
         killPlayer(player);
+      } else if (hit === 'stomp') {
+        player.vy = player.groundPounding ? -10 : -8;
+        player.groundPounding = false;
+        player.onGround = false;
+        player.squashTarget = [0.7, 1.3];
+        playBounce();
       } else if (hit === 'bounce_up') {
         player.vy = -12;
         player.onGround = false;
