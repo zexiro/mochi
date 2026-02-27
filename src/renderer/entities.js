@@ -124,6 +124,9 @@ export function renderEnemy(ctx, enemy, camX, camY) {
     case ENEMY_TYPE.WASABI:
       drawWasabi(ctx, enemy.animTimer);
       break;
+    case ENEMY_TYPE.TAIYAKI:
+      drawTaiyaki(ctx, enemy.animTimer);
+      break;
   }
 
   ctx.restore();
@@ -251,6 +254,55 @@ function drawWasabi(ctx, t) {
     ctx.quadraticCurveTo(sx + Math.sin(t * 2 + i) * 3, -18, sx, -22);
     ctx.stroke();
   }
+}
+
+function drawTaiyaki(ctx, t) {
+  // Fish-shaped body
+  ctx.fillStyle = '#D4903C';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 12, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Tail fin
+  ctx.fillStyle = '#C07830';
+  ctx.beginPath();
+  ctx.moveTo(-10, -2);
+  ctx.lineTo(-17, -7);
+  ctx.lineTo(-17, 7);
+  ctx.lineTo(-10, 2);
+  ctx.fill();
+
+  // Red bean filling visible (belly line)
+  ctx.fillStyle = '#8B3A3A';
+  ctx.beginPath();
+  ctx.ellipse(2, 2, 6, 3, 0, 0, Math.PI);
+  ctx.fill();
+
+  // Scale pattern
+  ctx.strokeStyle = '#B87028';
+  ctx.lineWidth = 0.5;
+  for (let i = -1; i <= 1; i++) {
+    ctx.beginPath();
+    ctx.arc(i * 5, -1, 3, 0, Math.PI);
+    ctx.stroke();
+  }
+
+  // Eye
+  ctx.fillStyle = '#2D2D2D';
+  ctx.beginPath();
+  ctx.arc(7, -2, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#FFF';
+  ctx.beginPath();
+  ctx.arc(6.5, -2.5, 0.7, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Dorsal fin
+  ctx.fillStyle = '#C07830';
+  ctx.beginPath();
+  ctx.moveTo(-2, -7);
+  ctx.quadraticCurveTo(2, -12 + Math.sin(t * 6) * 2, 6, -7);
+  ctx.fill();
 }
 
 export function renderCollectible(ctx, col, camX, camY) {

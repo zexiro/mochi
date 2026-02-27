@@ -1,5 +1,5 @@
 const SAVE_KEY = 'mochi_save';
-const TOTAL_LEVELS = 5;
+const TOTAL_LEVELS = 15;
 
 function loadSave() {
   try {

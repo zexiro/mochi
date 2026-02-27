@@ -1,5 +1,9 @@
-import { TILE_SIZE, isSolid, isPlatform, isSpike, isBounce, isCrumble } from '../levels/tiles.js';
+import { TILE_SIZE, isSolid, isPlatform, isSpike, isBounce, isCrumble, isConveyorL, isConveyorR, isConveyor } from '../levels/tiles.js';
 import { clamp } from '../utils/math.js';
+
+function isSolidOrConveyor(tile) {
+  return isSolid(tile) || isConveyor(tile);
+}
 
 export function getTile(level, col, row) {
   if (row < 0 || row >= level.rows || col < 0 || col >= level.cols) return 0;
@@ -15,7 +19,7 @@ export function resolveCollisionX(entity, level) {
     const col = Math.floor((entity.x + entity.w) / TILE_SIZE);
     for (let row = top; row <= bottom; row++) {
       const tile = getTile(level, col, row);
-      if (isSolid(tile)) {
+      if (isSolidOrConveyor(tile)) {
         entity.x = col * TILE_SIZE - entity.w;
         entity.vx = 0;
         entity.touchingRight = true;
@@ -26,7 +30,7 @@ export function resolveCollisionX(entity, level) {
     const col = Math.floor(entity.x / TILE_SIZE);
     for (let row = top; row <= bottom; row++) {
       const tile = getTile(level, col, row);
-      if (isSolid(tile)) {
+      if (isSolidOrConveyor(tile)) {
         entity.x = (col + 1) * TILE_SIZE;
         entity.vx = 0;
         entity.touchingLeft = true;
@@ -46,12 +50,14 @@ export function resolveCollisionY(entity, level, crumbleMap) {
   entity.onSpike = false;
   entity.onIce = false;
   entity.onCrumble = false;
+  entity.onConveyorL = false;
+  entity.onConveyorR = false;
 
   if (entity.vy > 0) {
     const row = Math.floor((entity.y + entity.h) / TILE_SIZE);
     for (let col = left; col <= right; col++) {
       const tile = getTile(level, col, row);
-      if (isSolid(tile) || isBounce(tile) || (isPlatform(tile) && entity.y + entity.h - entity.vy <= row * TILE_SIZE + 1)) {
+      if (isSolid(tile) || isBounce(tile) || isConveyorL(tile) || isConveyorR(tile) || (isPlatform(tile) && entity.y + entity.h - entity.vy <= row * TILE_SIZE + 1)) {
         if (isCrumble(tile)) {
           const key = `${col},${row}`;
           if (crumbleMap && crumbleMap[key] && crumbleMap[key].broken) continue;
@@ -71,6 +77,8 @@ export function resolveCollisionY(entity, level, crumbleMap) {
         entity.vy = 0;
         entity.onGround = true;
         if (tile === 6) entity.onIce = true;
+        if (isConveyorL(tile)) entity.onConveyorL = true;
+        if (isConveyorR(tile)) entity.onConveyorR = true;
         return;
       }
     }
@@ -87,13 +95,16 @@ export function resolveCollisionY(entity, level, crumbleMap) {
     }
   }
 
-  // Check spike tiles at feet when standing
+  // Check tiles at feet when standing
   if (entity.onGround) {
     const row = Math.floor((entity.y + entity.h + 1) / TILE_SIZE);
     for (let col = left; col <= right; col++) {
-      if (isSpike(getTile(level, col, row))) {
+      const tile = getTile(level, col, row);
+      if (isSpike(tile)) {
         entity.onSpike = true;
       }
+      if (isConveyorL(tile)) entity.onConveyorL = true;
+      if (isConveyorR(tile)) entity.onConveyorR = true;
     }
   }
 }

@@ -133,10 +133,16 @@
       }
     }
 
+    const wasDead = player.dead;
     const wasOnGround = player.onGround;
     const wasGroundPounding = player.groundPounding;
 
     updatePlayer(player, input, level, crumbleMap, dt);
+
+    // Reset crumble platforms on respawn
+    if (wasDead && !player.dead) {
+      crumbleMap = {};
+    }
 
     // Sound effects
     if (!wasOnGround && player.onGround && !player.dead) {

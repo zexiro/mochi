@@ -34,6 +34,12 @@ export function renderTiles(ctx, level, cam, palette, crumbleMap) {
         case TILE.ICE:
           drawIce(ctx, x, y, level, col, row);
           break;
+        case TILE.CONVEYOR_L:
+          drawConveyor(ctx, x, y, palette, -1);
+          break;
+        case TILE.CONVEYOR_R:
+          drawConveyor(ctx, x, y, palette, 1);
+          break;
       }
     }
   }
@@ -161,6 +167,41 @@ function drawIce(ctx, x, y, level, col, row) {
   ctx.fillStyle = 'rgba(255,255,255,0.3)';
   ctx.fillRect(x + 4, y + 4, 6, 3);
   ctx.fillRect(x + 14, y + 8, 4, 2);
+}
+
+function drawConveyor(ctx, x, y, palette, dir) {
+  const s = TILE_SIZE;
+
+  // Belt base
+  ctx.fillStyle = '#606060';
+  ctx.fillRect(x, y, s, s);
+
+  // Belt surface
+  ctx.fillStyle = '#808080';
+  roundedRect(ctx, x + 1, y + 1, s - 2, s - 2, 3);
+
+  // Animated arrows
+  const t = (Date.now() / 300) % s;
+  ctx.fillStyle = '#FFD700';
+  ctx.globalAlpha = 0.6;
+  for (let i = -1; i < 3; i++) {
+    const ax = dir > 0
+      ? x + ((i * 12 + t) % s)
+      : x + s - ((i * 12 + t) % s);
+    const ay = y + s / 2;
+    ctx.beginPath();
+    ctx.moveTo(ax + dir * 4, ay);
+    ctx.lineTo(ax - dir * 2, ay - 4);
+    ctx.lineTo(ax - dir * 2, ay + 4);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Edge lines
+  ctx.fillStyle = '#505050';
+  ctx.fillRect(x, y, s, 2);
+  ctx.fillRect(x, y + s - 2, s, 2);
 }
 
 function roundedRect(ctx, x, y, w, h, r, topOnly = false) {

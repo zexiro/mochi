@@ -2,7 +2,12 @@
   import { gameState } from '../stores/game.svelte.js';
   import { playMenuSelect } from '../audio/sfx.js';
 
-  const levelNames = ['', 'Sakura Meadow', 'Bamboo Grove', 'Cloud Kitchen', 'Lantern Walk', 'Moon Garden'];
+  const levelNames = [
+    '', 'Sakura Meadow', 'Bamboo Grove', 'Cloud Kitchen', 'Lantern Walk', 'Moon Garden',
+    'Frost Temple', 'Crumble Run', 'Spike Canyon', 'Bouncy Heights', 'Onigiri Alley',
+    'Conveyor Kitchen', 'Frozen Slide', 'Taiyaki Bay', 'Sky Garden', "Mochi's Feast",
+  ];
+  const levelNums = Array.from({length: gameState.totalLevels}, (_, i) => i + 1);
 
   function selectLevel(num) {
     if (!gameState.isUnlocked(num)) return;
@@ -23,7 +28,7 @@
   <h2 class="heading">Select Level</h2>
 
   <div class="grid">
-    {#each [1,2,3,4,5] as num}
+    {#each levelNums as num}
       {@const unlocked = gameState.isUnlocked(num)}
       {@const stars = gameState.getStars(num)}
       <button
@@ -90,10 +95,13 @@
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 12px;
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 4px;
   }
 
   .level-card {

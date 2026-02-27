@@ -6,6 +6,8 @@ export const TILE = {
   CRUMBLE: 4,     // breaks after standing on it briefly
   BOUNCE: 5,      // launches player upward
   ICE: 6,         // slippery
+  CONVEYOR_L: 7,  // pushes player left
+  CONVEYOR_R: 8,  // pushes player right
 };
 
 export const TILE_SIZE = 32;
@@ -28,4 +30,16 @@ export function isBounce(tile) {
 
 export function isCrumble(tile) {
   return tile === TILE.CRUMBLE;
+}
+
+export function isConveyorL(tile) {
+  return tile === TILE.CONVEYOR_L;
+}
+
+export function isConveyorR(tile) {
+  return tile === TILE.CONVEYOR_R;
+}
+
+export function isConveyor(tile) {
+  return tile === TILE.CONVEYOR_L || tile === TILE.CONVEYOR_R;
 }

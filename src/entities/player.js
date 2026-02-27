@@ -48,6 +48,8 @@ export function createPlayer(x, y) {
     onSpike: false,
     onIce: false,
     onCrumble: false,
+    onConveyorL: false,
+    onConveyorR: false,
     coyoteTimer: 0,
     jumpBuffer: 0,
     wallJumpTimer: 0,
@@ -94,6 +96,9 @@ export function updatePlayer(player, input, level, crumbleMap, dt) {
     player.wallJumpTimer -= dt;
   }
 
+  // Conveyor belt drift (target velocity when no input)
+  const conveyorSpeed = player.onConveyorL ? -MOVE_SPEED : player.onConveyorR ? MOVE_SPEED : 0;
+
   if (player.wallJumpTimer <= 0) {
     if (input.left) {
       player.vx = approach(player.vx, -MOVE_SPEED, accel);
@@ -101,6 +106,8 @@ export function updatePlayer(player, input, level, crumbleMap, dt) {
     } else if (input.right) {
       player.vx = approach(player.vx, MOVE_SPEED, accel);
       player.facing = 1;
+    } else if (conveyorSpeed !== 0) {
+      player.vx = approach(player.vx, conveyorSpeed, 0.3);
     } else {
       player.vx = approach(player.vx, 0, decel);
     }
