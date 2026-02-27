@@ -21,7 +21,7 @@ const COYOTE_TIME = 0.1;
 const JUMP_BUFFER = 0.1;
 const GROUND_POUND_SPEED = 12;
 const GROUND_POUND_BOUNCE = -8;
-const BOUNCE_PAD_FORCE = -14;
+const BOUNCE_PAD_FORCE = -16;
 
 export const STATE = {
   IDLE: 'idle',
