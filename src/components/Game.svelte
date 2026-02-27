@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import { gameState } from '../stores/game.svelte.js';
   import { initInput, pollInput, resetInput } from '../engine/input.js';
   import { createGameLoop } from '../engine/loop.js';
@@ -20,32 +21,32 @@
   let { paused = false } = $props();
 
   let canvas = $state(null);
-  let ctx = $state(null);
+  let dangoCount = $state(0);
+  let levelName = $state('');
+  let isMobile = $state(false);
+
+  // Non-reactive game state (only used in canvas render loop)
+  let ctx = null;
   let loop = null;
   let player = null;
   let camera = null;
-  let level = $state(null);
+  let level = null;
   let enemies = [];
   let collectibles = [];
   let crumbleMap = {};
   let levelTime = 0;
-  let dangoCollected = $state([]);
+  let dangoIds = [];
   let prevOnGround = false;
   let prevGroundPounding = false;
-
-  // Viewport scaling
-  let canvasW = $state(0);
-  let canvasH = $state(0);
-  let scale = $state(1);
-  let virtualW = $state(480);
-  let virtualH = $state(320);
-  let isMobile = $state(false);
+  let virtualW = 480;
+  let virtualH = 320;
+  let scale = 1;
 
   function setupLevel() {
     level = getLevel(gameState.currentLevel);
     if (!level) return;
 
-    const palette = PALETTES[level.palette];
+    levelName = level.name;
 
     player = createPlayer(level.spawn.x, level.spawn.y);
     setCheckpoint(player, level.spawn.x, level.spawn.y);
@@ -63,7 +64,8 @@
 
     crumbleMap = {};
     levelTime = 0;
-    dangoCollected = [];
+    dangoIds = [];
+    dangoCount = 0;
     prevOnGround = false;
     prevGroundPounding = false;
     clearParticles();
@@ -80,7 +82,6 @@
 
     isMobile = 'ontouchstart' in window || w < 768;
 
-    // Calculate virtual viewport
     const minTilesX = 12;
     const minTilesY = 8;
     const minW = minTilesX * TILE_SIZE;
@@ -97,9 +98,6 @@
     canvas.height = virtualH * dpr;
     canvas.style.width = w + 'px';
     canvas.style.height = h + 'px';
-
-    canvasW = w;
-    canvasH = h;
 
     if (ctx) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -144,7 +142,7 @@
     }
     if (input.jumpPressed && player.state !== 'respawn') {
       if (!wasOnGround && (player.touchingLeft || player.touchingRight)) {
-        playJump(); // wall jump
+        playJump();
       } else if (wasOnGround || player.coyoteTimer > 0) {
         playJump();
       }
@@ -179,7 +177,8 @@
       if (checkPlayerCollectible(player, col)) {
         if (col.type === COLLECTIBLE_TYPE.DANGO) {
           col.collected = true;
-          dangoCollected = [...dangoCollected, col.id];
+          dangoIds.push(col.id);
+          dangoCount = dangoIds.length;
           playCollect();
         } else if (col.type === COLLECTIBLE_TYPE.CHECKPOINT) {
           if (!col.activated) {
@@ -189,7 +188,7 @@
           }
         } else if (col.type === COLLECTIBLE_TYPE.GOAL) {
           playLevelComplete();
-          gameState.completeLevel(dangoCollected, levelTime);
+          gameState.completeLevel(dangoIds, levelTime);
           return;
         }
       }
@@ -204,35 +203,24 @@
 
     const palette = PALETTES[level.palette];
 
-    // Clear
     ctx.clearRect(0, 0, virtualW, virtualH);
 
-    // Background
     renderBackground(ctx, camera, palette, virtualW, virtualH);
-
-    // Tiles
     renderTiles(ctx, level, camera, palette, crumbleMap);
 
-    // Collectibles (behind player)
     for (const col of collectibles) {
       renderCollectible(ctx, col, camera.x, camera.y);
     }
 
-    // Enemies
     for (const enemy of enemies) {
       renderEnemy(ctx, enemy, camera.x, camera.y);
     }
 
-    // Player
     renderPlayer(ctx, player, camera.x, camera.y);
-
-    // Particles (on top)
     renderParticles(ctx, camera.x, camera.y);
   }
 
-  $effect(() => {
-    if (!canvas) return;
-
+  onMount(() => {
     ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = true;
 
@@ -258,31 +246,13 @@
       resetInput();
     };
   });
-
-  // Restart when level changes (from pause menu "restart")
-  $effect(() => {
-    const lvl = gameState.currentLevel;
-    const scr = gameState.screen;
-    if (scr === 'playing' && level && canvas) {
-      // Re-setup when returning from pause via restart
-    }
-  });
-
-  $effect(() => {
-    if (paused && loop?.running) {
-      // Don't stop the loop, just skip updates
-    }
-    if (!paused && loop && !loop.running) {
-      loop.start();
-    }
-  });
 </script>
 
 <div class="game-container">
   <canvas bind:this={canvas} aria-label="Mochi platformer game"></canvas>
 
   {#if !paused}
-    <HUD dango={dangoCollected.length} levelName={level?.name || ''} />
+    <HUD dango={dangoCount} levelName={levelName} />
     {#if isMobile}
       <TouchControls />
     {/if}
