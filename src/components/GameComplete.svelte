@@ -27,7 +27,7 @@
     <p class="sub">Thank you for playing!</p>
 
     <div class="stars-total">
-      {#each [1,2,3,4,5] as lvl}
+      {#each Array.from({length: gameState.totalLevels}, (_, i) => i + 1) as lvl}
         {@const s = gameState.getStars(lvl)}
         <div class="level-stars">
           <span class="lvl-num">{lvl}</span>
@@ -94,6 +94,8 @@
     padding: 12px;
     background: #F8F8F8;
     border-radius: 12px;
+    max-height: 240px;
+    overflow-y: auto;
   }
 
   .level-stars {
